@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llmops-config
+  namespace: llmops
+data:
+  BASE_MODEL: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  ADAPTER_PATH: "/mnt/model/adapter"
+  FAISS_INDEX_PATH: "/mnt/model/faiss_index"
+  PYTHONUNBUFFERED: "1"
+  LOG_LEVEL: "INFO"

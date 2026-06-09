@@ -1,0 +1,29 @@
+# Spins up MLflow tracking server + artifact store locally.
+# Run: docker-compose -f docker-compose.mlflow.yml up -d
+
+version: "3.8"
+
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.0
+    container_name: mlflow-server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow_data/artifacts:/mlflow/artifacts
+      - ./mlflow_data/db:/mlflow/db
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/db/mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:///mlflow/db/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

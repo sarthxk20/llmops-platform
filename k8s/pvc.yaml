@@ -1,0 +1,14 @@
+# PersistentVolumeClaim for model weights — mounted read-only into pods.
+# In minikube: use hostPath storage class.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-pvc
+  namespace: llmops
+spec:
+  accessModes:
+    - ReadOnlyMany        # multiple pods can read simultaneously
+  resources:
+    requests:
+      storage: 10Gi      # enough for TinyLlama adapter + FAISS index
+  storageClassName: standard
