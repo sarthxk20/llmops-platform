@@ -18,7 +18,6 @@ import time
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
-import torch
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
