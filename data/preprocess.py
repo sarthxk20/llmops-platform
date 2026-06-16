@@ -4,7 +4,6 @@ Domain: Customer support (Bitext customer support dataset via HuggingFace).
 Outputs tokenised Arrow files to data/processed/.
 """
 
-import os
 import json
 import argparse
 import logging
