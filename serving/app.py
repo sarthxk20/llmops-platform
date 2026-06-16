@@ -46,9 +46,13 @@ async def lifespan(app: FastAPI):
     global MODEL_LOADER, RAG, _READY
     log.info("Loading model and RAG pipeline...")
     try:
+        adapter_path = os.getenv("ADAPTER_PATH", "")
+        # Only use adapter path if it exists locally (skip during CI/testing)
+        resolved_adapter = adapter_path if adapter_path and os.path.exists(adapter_path) else None
+
         MODEL_LOADER = ModelLoader(
             base_model=os.getenv("BASE_MODEL", "TinyLlama/TinyLlama-1.1B-Chat-v1.0"),
-            adapter_path=os.getenv("ADAPTER_PATH", "models/checkpoints/best_adapter"),
+            adapter_path=resolved_adapter,
         )
         MODEL_LOADER.load()
 
@@ -93,7 +97,7 @@ Instrumentator().instrument(app).expose(app)
 # ── Schemas ────────────────────────────────────────────────────────────────────
 class GenerateRequest(BaseModel):
     instruction: str = Field(..., min_length=1, max_length=2000,
-                             example="How do I cancel my subscription?")
+                             json_schema_extra={"example": "How do I cancel my subscription?"})
     input_text:  str = Field("", max_length=2000)
     use_rag:     bool = Field(True,  description="Prepend retrieved context")
     max_new_tokens: int = Field(256, ge=1, le=1024)
@@ -112,7 +116,7 @@ class GenerateResponse(BaseModel):
 
 
 class EmbedRequest(BaseModel):
-    texts: List[str] = Field(..., min_items=1, max_items=64)
+    texts: List[str] = Field(..., min_length=1, max_length=64)
 
 
 class EmbedResponse(BaseModel):
