@@ -8,6 +8,7 @@ Usage:
 import argparse
 import json
 import logging
+import os
 
 import mlflow
 from mlflow.tracking import MlflowClient
@@ -52,18 +53,15 @@ def get_best_run(experiment_name: str, metric: str = "eval.rougeL", higher_is_be
 
 
 def promote_best_model(best_run, model_name: str):
-    """Transition the best model version to Production stage."""
     client = MlflowClient()
 
     versions = client.search_model_versions(f"name='{model_name}'")
-    # Find the version from this run
     target = next((v for v in versions if v.run_id == best_run.info.run_id), None)
 
     if target is None:
         log.warning(f"No model version found for run {best_run.info.run_id}.")
         return
 
-    # Archive all current Production versions
     for v in versions:
         if v.current_stage == "Production":
             client.transition_model_version_stage(
@@ -71,7 +69,6 @@ def promote_best_model(best_run, model_name: str):
             )
             log.info(f"Archived version {v.version}")
 
-    # Promote new best to Production
     client.transition_model_version_stage(
         name=model_name,
         version=target.version,
@@ -80,7 +77,6 @@ def promote_best_model(best_run, model_name: str):
     )
     log.info(f"Promoted version {target.version} → Production")
 
-    # Tag with promotion reason
     client.set_model_version_tag(
         name=model_name, version=target.version,
         key="promoted_by", value="compare_runs.py"
@@ -103,7 +99,7 @@ def export_leaderboard(runs, output_path: str = "models/leaderboard.json"):
             "rouge2":      r.data.metrics.get("eval.rouge2"),
             "rougeL":      r.data.metrics.get("eval.rougeL"),
         })
-    import os; os.makedirs("models", exist_ok=True)
+    os.makedirs("models", exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(rows, f, indent=2)
     log.info(f"Leaderboard saved → {output_path}")
@@ -134,7 +130,6 @@ if __name__ == "__main__":
     parser.add_argument("--tracking_uri", default="http://localhost:5000")
     parser.add_argument("--metric",       default="eval.rougeL")
     parser.add_argument("--model_name",   default="llmops-TinyLlama-1.1B-Chat-v1.0-lora")
-    parser.add_argument("--promote",      action="store_true",
-                        help="Promote best model to Production stage")
+    parser.add_argument("--promote",      action="store_true")
     args = parser.parse_args()
     main(args)
