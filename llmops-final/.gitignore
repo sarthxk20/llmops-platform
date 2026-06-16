@@ -1,0 +1,27 @@
+# Model weights and data (too large for git)
+data/processed/
+data/faiss_index/
+models/
+mlflow_data/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+.pytest_cache/
+coverage.xml
+.coverage
+
+# Env
+.env
+*.env
+
+# OS
+.DS_Store
+
+# K8s secrets (never commit)
+k8s/secret.yaml
