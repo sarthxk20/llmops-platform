@@ -11,14 +11,13 @@ Run as a cron job or standalone service:
 import argparse
 import json
 import logging
-import os
 from collections import Counter
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
-from scipy.stats import ks_2samp, chi2_contingency
+from scipy.stats import ks_2samp
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
