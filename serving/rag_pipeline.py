@@ -108,7 +108,7 @@ class IndexBuilder:
             end = min(start + self.chunk_size, len(words))
             chunks.append(" ".join(words[start:end]))
             start += self.chunk_size - self.overlap
-        return [c for c in chunks if len(c.strip()) > 20]
+        return [c for c in chunks if len(c.strip()) > 0]
 
     def build(self, docs_dir: str, index_path: str) -> None:
         out = Path(index_path)
