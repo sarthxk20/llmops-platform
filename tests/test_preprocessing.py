@@ -5,9 +5,8 @@ Run: pytest tests/test_preprocessing.py -v
 
 import json
 import sys
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -15,8 +14,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from data.preprocess import format_example, tokenize_fn, validate_dataset, save_stats
 
-
-# ── format_example ─────────────────────────────────────────────────────────────
 
 class TestFormatExample:
     def test_standard_instruction_format(self):
@@ -33,7 +30,6 @@ class TestFormatExample:
         assert "Summary." in result["text"]
 
     def test_bitext_format_mapping(self):
-        """Bitext rows use 'utterance' and 'response' keys."""
         example = {
             "utterance": "Where is my order?",
             "response": "Let me check your order status.",
@@ -44,7 +40,6 @@ class TestFormatExample:
         assert "### Response:" in result["text"]
 
     def test_missing_optional_fields(self):
-        """Should not crash when optional fields are absent."""
         example = {"instruction": "Tell me a joke.", "output": "Why did the..."}
         result = format_example(example)
         assert "Tell me a joke." in result["text"]
@@ -57,21 +52,7 @@ class TestFormatExample:
         assert len(result["text"]) > 0
 
 
-# ── tokenize_fn ────────────────────────────────────────────────────────────────
-
 class TestTokenizeFn:
-    def _mock_tokenizer(self, pad_id=0, max_length=16):
-        tok = MagicMock()
-        tok.pad_token_id = pad_id
-        # Return fake token IDs when called
-        def side_effect(texts, truncation, max_length, padding):
-            n = len(texts) if isinstance(texts, list) else 1
-            ids = [[1, 2, 3, pad_id, pad_id] for _ in range(n)]
-            return {"input_ids": ids, "attention_mask": [[1,1,1,0,0]]*n}
-        tok.side_effect = side_effect
-        tok.__call__ = side_effect
-        return tok
-
     def test_labels_mask_padding(self):
         tok = MagicMock()
         tok.pad_token_id = 0
@@ -80,10 +61,8 @@ class TestTokenizeFn:
             "attention_mask": [[1, 1, 1, 0, 0]],
         }
         result = tokenize_fn({"text": ["Hello world test pad pad"]}, tok, max_length=5)
-        # Padding tokens (0) should become -100 in labels
         assert result["labels"][0][3] == -100
         assert result["labels"][0][4] == -100
-        # Non-padding tokens should remain as-is
         assert result["labels"][0][0] == 1
         assert result["labels"][0][1] == 2
 
@@ -94,8 +73,6 @@ class TestTokenizeFn:
         result = tokenize_fn({"text": ["abc"]}, tok, max_length=8)
         assert "labels" in result
 
-
-# ── validate_dataset ───────────────────────────────────────────────────────────
 
 class TestValidateDataset:
     def _make_dataset(self, n=5):
@@ -109,7 +86,7 @@ class TestValidateDataset:
 
     def test_passes_valid_dataset(self):
         ds = self._make_dataset()
-        validate_dataset(ds)  # should not raise
+        validate_dataset(ds)
 
     def test_fails_missing_input_ids(self):
         from datasets import Dataset
@@ -123,8 +100,6 @@ class TestValidateDataset:
         with pytest.raises(AssertionError):
             validate_dataset(bad)
 
-
-# ── save_stats ─────────────────────────────────────────────────────────────────
 
 class TestSaveStats:
     def test_creates_json_file(self, tmp_path):
@@ -149,7 +124,6 @@ class TestSaveStats:
         from datasets import Dataset
         tok = MagicMock()
         tok.pad_token_id = 0
-        # Row 1: [1,2,3,0] → 3 non-pad tokens; Row 2: [1,2,0,0] → 2 non-pad
         ds = {"train": Dataset.from_dict({
             "input_ids":      [[1,2,3,0], [1,2,0,0]],
             "attention_mask": [[1,1,1,0], [1,1,0,0]],
