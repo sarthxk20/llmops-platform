@@ -14,18 +14,15 @@ What this does:
   7. Runs ROUGE evaluation on test split and logs scores
 """
 
-import os
 import json
 import logging
 import argparse
 from pathlib import Path
-from typing import Optional
 
 import yaml
 import torch
 import mlflow
 import mlflow.pytorch
-import numpy as np
 from datasets import load_from_disk
 from transformers import (
     AutoModelForCausalLM,
@@ -132,8 +129,6 @@ def evaluate_rouge(model, tokenizer, test_dataset, cfg: dict) -> dict:
 
     log.info(f"Running ROUGE eval on {n} test examples...")
     for row in subset:
-        # Reconstruct the prompt (everything up to ### Response:)
-        input_ids = torch.tensor([row["input_ids"]])
         # Find where response starts and trim
         full_text = tokenizer.decode(row["input_ids"], skip_special_tokens=True)
         prompt    = full_text.split("### Response:")[0] + "### Response:\n"
