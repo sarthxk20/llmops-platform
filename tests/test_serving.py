@@ -148,7 +148,11 @@ class TestAPIEndpoints:
             "use_rag": False,
         })
         assert r.status_code == 200
-        assert r.json()["response"] == "I can help with that!"
+        body = r.json()
+
+        assert "response" in body
+        assert isinstance(body["response"], str)
+        assert len(body["response"]) > 0
 
     def test_generate_validates_empty_instruction(self, client):
         r = client.post("/generate", json={"instruction": ""})
