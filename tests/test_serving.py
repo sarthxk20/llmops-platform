@@ -130,6 +130,9 @@ class TestAPIEndpoints:
             "instruction": "How do I cancel my subscription?",
             "use_rag": True,
         })
+
+        assert r.status_code == 200
+        
         body = r.json()
 
         assert "response" in body
