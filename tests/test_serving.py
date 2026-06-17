@@ -79,34 +79,38 @@ class TestRAGPipeline:
 class TestAPIEndpoints:
     """Test endpoints with mocked model and RAG."""
 
-   @pytest.fixture
-   def client(self):
-    import serving.app as app_module
-    from unittest.mock import patch
+    @pytest.fixture
+    def client(self):
+        import serving.app as app_module
+        from unittest.mock import patch
 
-    mock_loader = MagicMock()
-    mock_loader.is_loaded = True
-    mock_loader.model_name = "TinyLlama+lora"
-    mock_loader.device = "cpu"
-    mock_loader.generate.return_value = ("I can help with that!", 12)
-    mock_loader.embed.return_value = [[0.1, 0.2, 0.3]]
+        mock_loader = MagicMock()
+        mock_loader.is_loaded = True
+        mock_loader.model_name = "TinyLlama+lora"
+        mock_loader.device = "cpu"
+        mock_loader.generate.return_value = ("I can help with that!", 12)
+        mock_loader.embed.return_value = [[0.1, 0.2, 0.3]]
 
-    mock_rag = MagicMock()
-    mock_rag.retrieve.return_value = ["Relevant policy: subscriptions can be cancelled anytime."]
+        mock_rag = MagicMock()
+        mock_rag.retrieve.return_value = [
+            "Relevant policy: subscriptions can be cancelled anytime."
+        ]
 
-    with patch("serving.app.ModelLoader", return_value=mock_loader), \
-         patch("serving.app.RAGPipeline", return_value=mock_rag), \
-         patch("os.path.exists", return_value=False):
+        with patch("serving.app.ModelLoader", return_value=mock_loader), \
+             patch("serving.app.RAGPipeline", return_value=mock_rag), \
+             patch("os.path.exists", return_value=False):
+
+            app_module._READY = False
+
+            with TestClient(app_module.app) as c:
+                app_module.MODEL_LOADER = mock_loader
+                app_module.RAG = mock_rag
+                app_module._READY = True
+                yield c
+
+        app_module.MODEL_LOADER = None
+        app_module.RAG = None
         app_module._READY = False
-        with TestClient(app_module.app) as c:
-            app_module.MODEL_LOADER = mock_loader
-            app_module.RAG = mock_rag
-            app_module._READY = True
-            yield c
-
-    app_module.MODEL_LOADER = None
-    app_module.RAG = None
-    app_module._READY = False
 
     def test_health_returns_ok(self, client):
         r = client.get("/health")
