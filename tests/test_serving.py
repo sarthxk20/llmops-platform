@@ -80,7 +80,7 @@ class TestAPIEndpoints:
     """Test endpoints with mocked model and RAG."""
 
    @pytest.fixture
-    def client(self):
+def client(self):
     import serving.app as app_module
     from unittest.mock import patch
 
