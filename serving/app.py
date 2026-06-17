@@ -228,3 +228,5 @@ def _build_prompt(instruction: str, input_text: str, context: str) -> str:
 async def generic_handler(request: Request, exc: Exception):
     log.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
