@@ -30,13 +30,13 @@ GitHub Actions CI/CD
 
 | Metric | Base model | Fine-tuned (QLoRA) |
 |--------|-----------|-------------------|
-| ROUGE-1 | 0.21 | **0.38** |
-| ROUGE-2 | 0.09 | **0.19** |
-| ROUGE-L | 0.18 | **0.34** |
+| ROUGE-1 | 0.21 | **0.50** |
+| ROUGE-2 | 0.09 | **0.27** |
+| ROUGE-L | 0.18 | **0.36** |
 | Avg response latency | 820ms | 740ms |
 | Trainable parameters | 1.1B (100%) | **13M (1.2%)** |
 
-*Evaluated on 200-sample held-out test set from Bitext customer-support dataset.*
+*Evaluated on 500-sample validation set from Bitext customer-support dataset. Training: 3 epochs, 375 steps, loss 0.99 → 0.56. MLflow run [`ef3500f6`](https://dagshub.com/sarthxk20/llmops-platform.mlflow) tracked on DagsHub. Model registered as `llmops-TinyLlama-1.1B-Chat-v1.0-lora`.*
 
 ---
 
@@ -123,6 +123,9 @@ llmops-platform/
 ├── .github/workflows/
 │   ├── ci.yml                 # pytest + ruff on every push
 │   └── cd.yml                 # Docker build → push → kubectl apply
+├── models/
+│   └── checkpoints/
+│       └── best_adapter/      # QLoRA adapter weights (adapter_model.safetensors + config)
 ├── Dockerfile                 # multi-stage build
 ├── docker-compose.mlflow.yml  # local MLflow server
 └── requirements.txt
@@ -132,7 +135,7 @@ llmops-platform/
 
 ## Stack
 
-`PyTorch` · `Hugging Face Transformers` · `PEFT` · `TRL` · `MLflow` · `FastAPI` · `FAISS` · `sentence-transformers` · `Docker` · `Kubernetes` · `GitHub Actions` · `Prometheus`
+`PyTorch` · `Hugging Face Transformers` · `PEFT` · `TRL` · `MLflow` · `DagsHub` · `FastAPI` · `FAISS` · `sentence-transformers` · `Docker` · `Kubernetes` · `GitHub Actions` · `Prometheus`
 
 ---
 
