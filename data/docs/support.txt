@@ -1,0 +1,8 @@
+Subscriptions can be cancelled anytime from your account settings under Billing.
+Refunds are processed within 5-7 business days after cancellation.
+To reset your password, go to the login page and click Forgot Password.
+Contact support at support@example.com for billing issues.
+Orders can be tracked using the tracking number sent to your email.
+To update your payment method, go to Account > Billing > Payment Methods.
+If your account is locked, wait 30 minutes or contact support.
+Free trial lasts 14 days and no credit card is required to start.*
