@@ -1,6 +1,14 @@
 # LLMOps Serving Platform
 
+[![CI](https://github.com/sarthxk20/llmops-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/sarthxk20/llmops-platform/actions/workflows/ci.yml)
+[![CD](https://github.com/sarthxk20/llmops-platform/actions/workflows/cd.yml/badge.svg)](https://github.com/sarthxk20/llmops-platform/actions/workflows/cd.yml)
+[![Docker Image](https://img.shields.io/badge/ghcr.io-llmops--platform-blue?logo=docker)](https://github.com/sarthxk20/llmops-platform/pkgs/container/llmops-platform)
+[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](#)
+
 Production-grade MLOps system: fine-tunes a small LLM (TinyLlama-1.1B) with QLoRA, augments inference with RAG, serves via FastAPI, tracks experiments in MLflow, and deploys on Kubernetes with GitHub Actions CI/CD.
+
+**1.2% of parameters trained → 138% relative improvement in ROUGE-1**, with a fully automated test → build → push pipeline.
 
 ---
 
@@ -26,15 +34,29 @@ GitHub Actions CI/CD
 
 ---
 
+## CI/CD Pipeline
+
+| Stage | Tool | Status |
+|-------|------|--------|
+| Lint | ruff | ✅ Passing |
+| Unit tests | pytest (27 tests) | ✅ Passing |
+| Build | Docker multi-stage build | ✅ Automated |
+| Push | GitHub Actions → GHCR | ✅ Automated |
+| Deploy | kubectl → minikube | Manual (see below) |
+
+Every push to `main` runs lint + the full test suite (`ci.yml`). The image build and push to [`ghcr.io/sarthxk20/llmops-platform`](https://github.com/sarthxk20/llmops-platform/pkgs/container/llmops-platform) is triggered on demand via `cd.yml`. Kubernetes deployment targets a local minikube cluster and is run manually — see [Deploy to Kubernetes](#deploy-to-kubernetes-minikube) below.
+
+---
+
 ## Results
 
-| Metric | Base model | Fine-tuned (QLoRA) |
-|--------|-----------|-------------------|
-| ROUGE-1 | 0.21 | **0.50** |
-| ROUGE-2 | 0.09 | **0.27** |
-| ROUGE-L | 0.18 | **0.36** |
-| Avg response latency | 820ms | 740ms |
-| Trainable parameters | 1.1B (100%) | **13M (1.2%)** |
+| Metric | Base model | Fine-tuned (QLoRA) | Improvement |
+|--------|-----------|-------------------|-------------|
+| ROUGE-1 | 0.21 | **0.50** | +138% |
+| ROUGE-2 | 0.09 | **0.27** | +200% |
+| ROUGE-L | 0.18 | **0.36** | +100% |
+| Avg response latency | 820ms | 740ms | −10% |
+| Trainable parameters | 1.1B (100%) | **13M (1.2%)** | 98.8% fewer |
 
 *Evaluated on 500-sample validation set from Bitext customer-support dataset. Training: 3 epochs, 375 steps, loss 0.99 → 0.56. MLflow run [`ef3500f6`](https://dagshub.com/sarthxk20/llmops-platform.mlflow) tracked on DagsHub. Model registered as `llmops-TinyLlama-1.1B-Chat-v1.0-lora`.*
 
@@ -122,7 +144,7 @@ llmops-platform/
 │   └── test_serving.py
 ├── .github/workflows/
 │   ├── ci.yml                 # pytest + ruff on every push
-│   └── cd.yml                 # Docker build → push → kubectl apply
+│   └── cd.yml                 # Docker build → push to GHCR
 ├── models/
 │   └── checkpoints/
 │       └── best_adapter/      # QLoRA adapter weights (adapter_model.safetensors + config)
