@@ -42,36 +42,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  deploy:
-    name: Deploy to Kubernetes
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - uses: azure/setup-kubectl@v3
-        with: {version: "v1.29.0"}
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
-      - name: Apply manifests
-        run: |
-          kubectl apply -f k8s/namespace.yaml
-          kubectl apply -f k8s/configmap.yaml
-          kubectl apply -f k8s/pvc.yaml
-          kubectl apply -f k8s/service.yaml
-          kubectl apply -f k8s/hpa.yaml
-      - name: Update image
-        run: |
-          kubectl set image deployment/llmops-server \
-            llmops-server=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-and-push.outputs.image_digest }} \
-            -n llmops
-      - name: Wait for rollout
-        run: kubectl rollout status deployment/llmops-server -n llmops --timeout=5m
-      - name: Verify health
-        run: |
-          kubectl port-forward svc/llmops-service 8080:80 -n llmops &
-          sleep 5
-          curl -f http://localhost:8080/health
